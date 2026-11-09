@@ -33,6 +33,13 @@ await waitForPayload();                          // 通过后等业务载荷（�
 
 **调优口径**（实测得出，别拍脑袋改）：风控判定的是「短时间窗内连续申请/提交验证码」的爆破特征，而不是绝对速度。把高频动作离散化（分钟级换题、页间随机间隔、分批冷却）比整体放慢更有效。
 
+## 题型映射（L2 把组件题翻译成 L1 的 type）
+
+**天爱组件**（`profile: "tac"`）：`SLIDER→slider`、`ROTATE→rotate`、`CONCAT→concat`、`WORD_IMAGE_CLICK→ordered_click`。
+
+**通用题型**（`profile: "generic"`，多数行业站点直接用）：
+`文本类→digits/letters/alphanumeric/chinese`、`算术→arithmetic`、`语序填空→ordered_fill`、`点选→ordered_click`、`差分滑块→slider`、`通用旋转→rotate`。完整请求字段见 `../l1-recognition/README.md`。
+
 ## 失败语义（上层必须处理）
 
 | 情况 | 表现 | 上层动作 |

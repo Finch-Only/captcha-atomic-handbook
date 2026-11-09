@@ -195,6 +195,19 @@
 </table>
 <div class="note note-amber">⚠️ <b>引擎边界（哪些场景现在做不了）</b>：无参考图的任意旋转、自由布局的点字、语序推断类、未知组件——这些需要单独适配算法；点字题遇到低对比图可能给不出候选（needs_human），靠换题兜底，不硬解。</div>
 
+<h3>5+｜行业通用题型（profile=generic）：不止这一家组件</h3>
+<p>上面的四题型是站点A那家组件的特调。同一套识别原子里还有一个 <span class="tag tag-green">generic</span> profile，覆盖各行业网站普遍存在的题型——政务、电商、论坛、后台登录页遇到的大部分验证码都在这张表里。识别原子层换站点零改动的底气就在这里：generic 题型吃的是「原图+几何信息」，跟哪家组件、哪个行业无关。</p>
+<table>
+  <tr><th style="width:150px">题型</th><th>题目长什么样</th><th>需要什么输入</th><th>怎么算</th><th>输出</th></tr>
+  <tr><td><span class="tag tag-green">digits / letters / alphanumeric / chinese</span></td><td>最普通的扭曲文字图片码（登录页 90% 都是它）</td><td>图片（可选长度校验 length）</td><td>ddddocr OCR，结果必须整体匹配对应正则才给候选</td><td>文本</td></tr>
+  <tr><td><span class="tag tag-green">arithmetic</span></td><td>"3×5=?" 这类算术题（后台系统常见）</td><td>图片（可选除法结果格式）</td><td>OCR 提式 + 符号归一（×x÷−）+ 精确计算；提式失败/除零/非整数 → 转人工，绝不瞎猜</td><td>计算结果 + 原式</td></tr>
+  <tr><td><span class="tag tag-green">ordered_fill</span></td><td>"按顺序输入第2、1、3个字"</td><td>图片 + 字格坐标（1–24 个框）+ 顺序</td><td>逐格 OCR，任一格无法唯一识别 → 转人工</td><td>按序文本</td></tr>
+  <tr><td><span class="tag tag-green">ordered_click</span></td><td>"请依次点击：人民"（点字，调用者已检出字格）</td><td>图片 + 字格坐标 + 提示词</td><td>逐格 OCR + 按提示排序；目标缺失或位置不唯一 → 转人工</td><td>点击坐标列表（原图像素）</td></tr>
+  <tr><td><span class="tag tag-green">slider</span></td><td>有干净底图可对比的滑块</td><td>带缺口图 + 同尺寸干净参考图</td><td>图像差分 + 连通域；缺口必须唯一且明显（次大成分≥65% 就转人工）</td><td>缺口中心坐标</td></tr>
+  <tr><td><span class="tag tag-green">rotate</span></td><td>有参考图或圆环几何的旋转题</td><td>图片 + 参考图（正方形）或圆环 [cx,cy,radius]</td><td>3°/1° 步进旋转对齐；出现多个相近解 → 转人工</td><td>顺时针角度</td></tr>
+</table>
+<div class="note note-amber">⚠️ <b>generic 与 tac 的坐标系不同</b>：generic 输出原图像素坐标，tac 输出 300×180 组件坐标（242px 轨道），映射到页面是 L2 的职责。完整请求字段与示例见仓库 <b>l1-recognition/README.md</b> 和 references/contract.md。</div>
+
 <!-- ============ 6 术语表 ============ -->
 <h2 id="s6">6｜术语 → 人话翻译表</h2>
 <table>
