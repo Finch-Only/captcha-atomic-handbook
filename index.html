@@ -170,7 +170,7 @@
 <p>下面是 11-09 例行轮的真实时序（terminal.log 原文摘录），一道拼接题从弹出到过码全程 7.8 秒：</p>
 <div class="steps">
   <div class="step"><b>翻页触发验证码</b><br><span class="why">第 3 层翻到第 6 页 → 页面弹出天爱验证码大卡片，第 2 层监听器捕获题目（type=CONCAT）</span></div>
-  <div class="step"><b>截图取题 → 调识别引擎</b><br><span class="why">底图存为 PNG，调用第 1 层 CLI（profile=shanxi-tac, type=concat），子进程 30 秒超时。引擎找出"竖直断缝 x=551、上下边界 y=175"，复原后色差下降 68.5 判定拼对了 → 返回 candidate（拖动 551−初始位 像素）</span></div>
+  <div class="step"><b>截图取题 → 调识别引擎</b><br><span class="why">底图存为 PNG，调用第 1 层 CLI（profile=tac, type=concat），子进程 30 秒超时。引擎找出"竖直断缝 x=551、上下边界 y=175"，复原后色差下降 68.5 判定拼对了 → 返回 candidate（拖动 551−初始位 像素）</span></div>
   <div class="step"><b>人化拖动</b><br><span class="why">先"看题"停 1.2~2.8 秒 → 按下前停 150~400ms → 拖动轨迹分多步、带随机纵向抖动 → 接近目标时先冲过头 3 像素再回弹 → 松手前精确落回目标 → 松手</span></div>
   <div class="step"><b>等服务端回执（以它为准）</b><br><span class="why">监听 /captcha/check 响应：同一挑战 id + code 200 + success=true 才算"过"。页面还没刷新不算失败——回执台账留着，监听窗口外回来的"迟到回执"也能补捞（事件 captcha_auto_late_receipt）</span></div>
   <div class="step"><b>等业务载荷，而不是急着重查</b><br><span class="why">过码后站点会自动补发被拦住的查询。程序只等载荷回来（total=274），<b>绝不主动重发查询</b>——多发一次就是多一次风控暴露</span></div>
@@ -216,7 +216,7 @@
   <tr><td><code>needs_human</code></td><td>引擎说"这道题我给不出靠谱答案"，交人工或换题。不是报错，是正常输出之一（退出码仍是 0）</td></tr>
   <tr><td><code>error</code></td><td>输入或环境坏了（图片读不到、依赖缺），退出码 2，程序必须单独处理</td></tr>
   <tr><td><span class="term">天爱组件 / tianai / TAC</span></td><td>站点A政务站用的验证码前端组件（tianai-captcha），四种题型：滑块/旋转/拼接/点字</td></tr>
-  <tr><td><code>profile</code>（generic / shanxi-tac）</td><td>识别引擎的"档位"：generic 是通用图片码档；shanxi-tac 是按站点A组件坐标和参考图特调的档</td></tr>
+  <tr><td><code>profile</code>（generic / tac）</td><td>识别引擎的"档位"：generic 是通用图片码档；tac 是按站点A组件坐标和参考图特调的档</td></tr>
   <tr><td><code>verifyCaptchaId</code></td><td>过码后站点发的"通行证 id"，随后的业务请求带着它，服务端才知道你过了码</td></tr>
   <tr><td><b>回执</b></td><td>服务端对这道题的裁决（/captcha/check 返回 success=true）。<b>唯一可信的"过了"凭证</b>，页面没动不算失败、页面动了也不算成功</td></tr>
   <tr><td><b>载荷</b></td><td>业务查询真正返回的数据（列表 total、rows）。过码后它回来 = 业务请求真的发出去了</td></tr>
@@ -252,7 +252,7 @@
 <h2 id="s8">8｜适配新站点 Checklist（照着做，8 步）</h2>
 <div class="card">
 <div class="steps" style="margin-top:4px">
-  <div class="step"><b>先判断验证码类型</b><br><span class="why">经典图片文字码（数字/字母/算术）→ 用 generic 档，几乎零适配；滑块/旋转/拼接/点字组件 → 看是不是天爱组件（是 → 直接用 shanxi-tac 档；不是 → 第 5 步要写新映射）</span></div>
+  <div class="step"><b>先判断验证码类型</b><br><span class="why">经典图片文字码（数字/字母/算术）→ 用 generic 档，几乎零适配；滑块/旋转/拼接/点字组件 → 看是不是天爱组件（是 → 直接用 tac 档；不是 → 第 5 步要写新映射）</span></div>
   <div class="step"><b>部署识别原子（第 1 层）</b><br><span class="why">拷贝 captcha-recognition 技能目录 → Python 3.12 建虚拟环境装依赖 → 跑一次 CLI 确认输出一行合法 JSON。点字题需要额外放两个模型文件（onnx + 字典，SHA256 见 contract.md）</span></div>
   <div class="step"><b>离线验收，别直接上现网</b><br><span class="why">收集 30~100 道带答案的样本题，测整题正确率和"错误放行率"（把错的当对的提交，比识别不出更危险）。成绩记进 tuning.json 作为基线</span></div>
   <div class="step"><b>写第 2 层：取题与提交</b><br><span class="why">监听验证码弹出 → 截下引擎需要的图（底图/参考图/提示词，透明通道要保留）→ 调 CLI → 把答案映射成页面操作。经典图码约 30 行；组件类要处理控件缩放（见第 11 节 CONCAT 教训）</span></div>
@@ -294,7 +294,7 @@
 <table>
   <tr><th style="width:130px"></th><th>站点A（天爱组件）</th><th>站点B（经典图码）</th></tr>
   <tr><td>验证码类型</td><td>tianai 组件：滑块/旋转/拼接/点字四题型</td><td>数字+字母失真文字图</td></tr>
-  <tr><td>第 1 层改动</td><td>新增 shanxi-tac 档（四题型算法 + 300×180/242px 组件坐标 + 冻结参考底图库）</td><td><b>零改动</b>，generic 档直接用</td></tr>
+  <tr><td>第 1 层改动</td><td>新增 tac 档（四题型算法 + 300×180/242px 组件坐标 + 冻结参考底图库）</td><td><b>零改动</b>，generic 档直接用</td></tr>
   <tr><td>第 2 层改动</td><td>captcha-auto.mjs 全量（监听/截图/缩放映射/人化拖动/回执台账，约 700 行）</td><td>约 30 行（截图 → OCR → 填框 → 提交 → 校验生效）</td></tr>
   <tr><td>第 3 层改动</td><td>完整模拟人工协议</td><td>复用同一套节奏参数</td></tr>
   <tr><td>现网状态</td><td>每日 09:50 例行，全自动零人工</td><td>每日 09:55 例行，全自动零人工</td></tr>
@@ -332,6 +332,15 @@
 <p>④ <b>数据仅用于已授权的内部数据需求登记流程</b>，采集范围、频率、字段都有登记可查。</p>
 </div>
 
+<h3>12+｜能力边界速查：哪些验证码明确不在能力范围内</h3>
+<p>本能力是<b>图片验证码识别</b>能力。有一大类"行为验证码"（极验、腾讯 TCaptcha、Google reCAPTCHA 等）<b>明确不适用</b>——它们考的不是认图，是"整个过程像不像人"。三个真实案例：</p>
+<table>
+  <tr><th style="width:170px">案例</th><th>表现</th><th>为什么识别引擎帮不上忙</th></tr>
+  <tr><td><b>12306 点选</b>（极验类）</td><td>"点击所有含火车轿厢的图"，点对了仍提示重试</td><td>后台在评<b>鼠标轨迹</b>：真人先快后慢、接近目标减速微调；程序是瞬间直线跳过去，一眼假</td></tr>
+  <tr><td><b>微信/QQ 网页登录滑块</b>（腾讯 TCaptcha）</td><td>外观与普通滑块一样</td><td>事件带 <b>isTrusted 标记</b>：脚本模拟的事件可直接被识别，缺口算得再准也过不了</td></tr>
+  <tr><td><b>reCAPTCHA v3</b>（跨境站常见）</td><td>无感模式，平时根本不弹图</td><td>对<b>整段浏览行为打 0.1~0.9 分</b>，低于阈值才弹九宫格——连"题"都没有</td></tr>
+</table>
+<p>行为验证码的本质是<b>风控对抗</b>（轨迹/加速度/按键节奏/浏览器指纹），与图片识别是两个技术物种，绕过的合规风险也高一个量级。<b>遇到行为验证码的站点：正确姿势是 needs_human 转人工或放弃该站点</b>，不要拿本能力去硬试。本能力的"模拟人工节奏"（页间随机停顿、分批冷却）目的是让正常采集不被误伤，不是用来突破行为风控的。</p>
 <!-- ============ 附录 A ============ -->
 <h2 id="a1">附录 A｜识别引擎 CLI 速查</h2>
 <pre><code id="c1"># 通用档：数字+字母图片码（站点B在用）
@@ -339,7 +348,7 @@ printf '%s\n' '{"type":"digits","image":"/abs/path/code.png","length":4}' | \
   ~/skills/captcha-recognition/run -
 # → {"status":"candidate","answer":{"text":"0148"},...}</code></pre>
 <pre><code id="c2"># 站点A天爱档：滑块 / 旋转 / 拼接 / 点字
-printf '%s\n' '{"profile":"shanxi-tac","type":"slider","image":"/abs/bg.png","template":"/abs/piece.png"}' | \
+printf '%s\n' '{"profile":"tac","type":"slider","image":"/abs/bg.png","template":"/abs/piece.png"}' | \
   ~/skills/captcha-recognition/run -
 # → {"status":"candidate","answer":{"drag_px":153},...}
 
@@ -372,9 +381,9 @@ printf '%s\n' '{"profile":"shanxi-tac","type":"slider","image":"/abs/bg.png","te
 <h2 id="a3">附录 C｜文件与职责清单</h2>
 <table>
   <tr><th style="width:280px">文件</th><th>层</th><th>职责</th></tr>
-  <tr><td><code>skills/captcha-recognition/</code><br>（run · recognize.py · shanxi_engine.py · assets/）</td><td>第 1 层</td><td>识别原子：CLI + 通用题型引擎 + 站点A四题型特调引擎 + 冻结参考底图库 + tuning.json 成绩账本</td></tr>
-  <tr><td><code>collect-shanxi-pv-filings/scripts/captcha-auto.mjs</code></td><td>第 2 层</td><td>站点A天爱组件的页面交互编排（监听/截图/缩放/人化操作/回执台账）</td></tr>
-  <tr><td><code>collect-shanxi-pv-filings/scripts/persistent-collector.mjs</code></td><td>第 3 层</td><td>模拟人工调用协议 + 防限流节奏 + 断点/跳页/事件日志</td></tr>
+  <tr><td><code>skills/captcha-recognition/</code><br>（run · recognize.py · tac_engine.py · assets/）</td><td>第 1 层</td><td>识别原子：CLI + 通用题型引擎 + 站点A四题型特调引擎 + 冻结参考底图库 + tuning.json 成绩账本</td></tr>
+  <tr><td><code>l2-page-adapter/captcha-auto.mjs</code></td><td>第 2 层</td><td>站点A天爱组件的页面交互编排（监听/截图/缩放/人化操作/回执台账）</td></tr>
+  <tr><td><code>l3-protocol/（业务采集器，见接入示例）</code></td><td>第 3 层</td><td>模拟人工调用协议 + 防限流节奏 + 断点/跳页/事件日志</td></tr>
   <tr><td><code>collect-yunnan-pv-filings/scripts/persistent-collector.mjs</code></td><td>第 2+3 层</td><td>站点B经典图码的极简适配（第 1 层零改动复用的实证）</td></tr>
   <tr><td><code>captcha-recognition/references/contract.md</code></td><td>文档</td><td>调用契约：输入输出格式、题型覆盖边界、跨机器安装、模型文件校验和</td></tr>
 </table>
