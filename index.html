@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>验证码自动识别原子能力 · 分享手册</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1f2329; --ink2:#5b6472; --line:#e4e7ec;
+    --blue:#2563eb; --blue-bg:#eff4ff; --green:#15803d; --green-bg:#effaf1;
+    --red:#b42318; --red-bg:#fdf0ef; --amber:#92400e; --amber-bg:#fff8eb;
+    --purple:#6d28d9; --purple-bg:#f4f0ff; --teal:#0f766e; --teal-bg:#ecfaf8;
+    --code-bg:#f4f5f7; --radius:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.75;font-size:15px;}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 80px;}
+  h1{font-size:26px;font-weight:700;letter-spacing:.5px;}
+  .subtitle{color:var(--ink2);margin-top:6px;font-size:14px;}
+  .meta{margin-top:10px;font-size:12.5px;color:var(--ink2);}
+  .meta b{color:var(--ink);font-weight:600;}
+  h2{font-size:20px;font-weight:700;margin:44px 0 14px;padding-left:12px;border-left:4px solid var(--blue);}
+  h3{font-size:16px;font-weight:700;margin:22px 0 8px;}
+  p{margin:8px 0;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0;background:var(--card);}
+  th{background:#f0f2f5;text-align:left;padding:8px 10px;border:1px solid var(--line);font-weight:600;white-space:nowrap;}
+  td{padding:8px 10px;border:1px solid var(--line);vertical-align:top;}
+  tr:nth-child(even) td{background:#fafbfc;}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;background:var(--code-bg);border:1px solid var(--line);border-radius:5px;padding:1px 6px;word-break:break-all;}
+  pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:12.5px;line-height:1.6;position:relative;}
+  pre code{background:none;border:none;padding:0;}
+  .tag{display:inline-block;font-size:12px;font-weight:600;border-radius:20px;padding:2px 10px;margin-right:6px;vertical-align:1px;}
+  .tag-blue{background:var(--blue-bg);color:var(--blue);} .tag-green{background:var(--green-bg);color:var(--green);}
+  .tag-red{background:var(--red-bg);color:var(--red);} .tag-amber{background:var(--amber-bg);color:var(--amber);}
+  .tag-purple{background:var(--purple-bg);color:var(--purple);} .tag-teal{background:var(--teal-bg);color:var(--teal);}
+  /* 先看这一屏 */
+  #boot{position:relative;background:linear-gradient(135deg,#eff4ff,#f4f0ff);border:1px solid #c7d5f5;border-radius:14px;padding:22px 26px;margin:22px 0;}
+  #boot h2{border:none;margin:0 0 10px;padding:0;font-size:18px;}
+  #boot ul{margin:8px 0 0 20px;}
+  #boot .close{position:absolute;top:14px;right:14px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 12px;font-size:12.5px;cursor:pointer;color:var(--ink2);}
+  #boot .close:hover{color:var(--ink);border-color:#b9c2d0;}
+  /* TL;DR */
+  .tldr{background:var(--card);border-left:4px solid var(--blue);border-radius:0 12px 12px 0;padding:18px 22px;margin:14px 0;font-size:14.5px;}
+  /* 结论数字 */
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0;}
+  .stat{flex:1;min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;text-align:center;}
+  .stat .num{font-size:26px;font-weight:800;color:var(--blue);}
+  .stat .num.green{color:var(--green);} .stat .num.red{color:var(--red);}
+  .stat .lbl{font-size:12.5px;color:var(--ink2);margin-top:2px;}
+  /* 流程步骤 */
+  .steps{counter-reset:s;margin:12px 0;}
+  .step{position:relative;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px 12px 52px;margin:8px 0;}
+  .step::before{counter-increment:s;content:counter(s);position:absolute;left:14px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;}
+  .step b{color:var(--ink);} .step .why{color:var(--ink2);font-size:13px;}
+  /* 术语表 */
+  .term{color:var(--ink2);font-size:13px;}
+  /* 提示框 */
+  .note{border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13.5px;}
+  .note-blue{background:var(--blue-bg);border:1px solid #c7d5f5;}
+  .note-green{background:var(--green-bg);border:1px solid #bfe6c8;}
+  .note-red{background:var(--red-bg);border:1px solid #f2c1bd;}
+  .note-amber{background:var(--amber-bg);border:1px solid #f0d9a8;}
+  /* details */
+  details{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:10px 0;}
+  details summary{cursor:pointer;padding:12px 16px;font-weight:600;font-size:14.5px;user-select:none;}
+  details summary::marker{color:var(--blue);}
+  details .body{padding:0 16px 14px;}
+  /* 估算器 */
+  .calc{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0;}
+  .calc input{width:110px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;}
+  .calc button{padding:7px 18px;border:none;border-radius:8px;background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer;}
+  .calc button:hover{background:#1d4fd8;}
+  #calcOut{margin-top:10px;font-size:14px;}
+  #calcOut table{margin-top:8px;}
+  .copy{position:absolute;top:8px;right:8px;border:1px solid var(--line);background:#fff;border-radius:6px;font-size:11.5px;padding:2px 10px;cursor:pointer;color:var(--ink2);}
+  .copy:hover{color:var(--ink);}
+  .toc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 20px;margin:20px 0;font-size:13.5px;}
+  .toc a{color:var(--blue);text-decoration:none;margin-right:14px;white-space:nowrap;display:inline-block;padding:2px 0;}
+  .toc a:hover{text-decoration:underline;}
+  svg text{font-family:-apple-system,"PingFang SC",sans-serif;}
+  .foot{margin-top:50px;color:var(--ink2);font-size:12.5px;border-top:1px solid var(--line);padding-top:14px;}
+  @media print{ body{background:#fff;} #boot .close{display:none;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>验证码自动识别 · 原子能力手册</h1>
+<div class="subtitle">从「山西一次性脚本」提炼为「三层可复用原子能力」· 已在山西（天爱组件 4 题型）+ 云南（经典图码）两省现网验证</div>
+<div class="meta">整理日期 <b>2026-11-09</b> ｜ 维护 <b>万峰 / 小布</b> ｜ 数据依据 <b>2026-09-01 验收轮 + 11-06/11-09 现网轮真实日志</b>，所有数字都能在代码和事件日志里对上</div>
+
+<!-- ============ 先看这一屏 ============ -->
+<div id="boot">
+  <button class="close" onclick="document.getElementById('boot').remove()">不再显示</button>
+  <h2>👋 先看这一屏</h2>
+  <ul>
+    <li><b>这是什么</b>：一套让采集程序自己过验证码（不靠人填）的完整能力，按「识别引擎 → 网页操作 → 调用节奏」分三层，别人可以整包搬走，也可以只搬某一层。</li>
+    <li><b>适合谁</b>：要给政务/企业公开站点做批量数据采集的同事；只要验证码是<b>公开页面上的弹窗/图片验证码</b>（不是登录态），这套思路就能套。</li>
+    <li><b>怎么读（按顺序，总共约 15 分钟）</b>：① 第 1、2 节结论和人话流程（3 分钟）→ ② 第 3 节架构图 + 第 4 节真实例子（5 分钟）→ ③ 第 5~7 节题型原理、模拟人工协议、参数表（5 分钟）→ ④ 真要动手时，照第 8 节 checklist 一步步来。</li>
+    <li><b>一句话结论</b>：识别引擎本身已经不是瓶颈（点字题最难也有换题兜底），<b>真正决定成败的是调用方式要像人</b>——一页只解一道题、只提交一次，节奏放慢。</li>
+  </ul>
+</div>
+
+<!-- ============ 目录 ============ -->
+<div class="toc">
+  <a href="#s1">1 结论先行</a><a href="#s2">2 人话流程</a><a href="#s3">3 三层架构</a><a href="#s4">4 真实例子</a><a href="#s5">5 四题型原理</a><a href="#s6">6 术语翻译表</a><a href="#s7">7 模拟人工协议</a><a href="#s8">8 适配 Checklist</a><a href="#s9">9 参数调优</a><a href="#s10">10 两省对比</a><a href="#s11">11 踩坑复盘</a><a href="#s12">12 边界与合规</a><a href="#a1">附录A CLI速查</a><a href="#a2">附录B 事件字典</a><a href="#a3">附录C 文件清单</a>
+</div>
+
+<!-- ============ 1 结论先行 ============ -->
+<h2 id="s1">1｜结论先行：这套能力现在什么水平</h2>
+<div class="stats">
+  <div class="stat"><div class="num">100/103</div><div class="lbl">山西验收轮（100 页 103 题）</div></div>
+  <div class="stat"><div class="num green">28/28</div><div class="lbl">11-09 例行轮：全自动过码页数</div></div>
+  <div class="stat"><div class="num green">0</div><div class="lbl">11-09 例行轮：人工填码次数</div></div>
+  <div class="stat"><div class="num">332 页</div><div class="lbl">人工节奏对照轮：零风控</div></div>
+  <div class="stat"><div class="num red">3 页</div><div class="lbl">旧调用方式：即触发限流</div></div>
+</div>
+<table>
+  <tr><th>题型</th><th>验收轮成绩</th><th>现网累计（tuning.json）</th><th>说明</th></tr>
+  <tr><td><span class="tag tag-blue">SLIDER</span> 滑块</td><td>28/29</td><td>45/48（94%）</td><td>最稳的题型</td></tr>
+  <tr><td><span class="tag tag-purple">ROTATE</span> 旋转</td><td>24/24</td><td>47/48（98%）</td><td>最稳的题型</td></tr>
+  <tr><td><span class="tag tag-teal">CONCAT</span> 拼接大卡</td><td>22/22</td><td>14/25（56%）</td><td>难度高，靠换题兜底</td></tr>
+  <tr><td><span class="tag tag-amber">WORD_IMAGE_CLICK</span> 点字</td><td>26/28</td><td>28/37 首轮 + 换题后 3/3</td><td>低对比图偶尔识别不出，换一道题就过</td></tr>
+</table>
+<div class="note note-blue">💡 怎么读这张表：单题型识别率不是 100% 没关系——<b>点字题识别不出时换一道题再试（1~2 轮内基本必过）</b>，整页链路的实际成功率远高于单题识别率。11-09 例行轮 28 页里只有第 18 页用了 2 轮，最后仍由定点补采一次通过。</div>
+
+<!-- ============ 2 人话流程 ============ -->
+<h2 id="s2">2｜人话流程：这一套东西到底怎么干活</h2>
+<div class="tldr">
+<p><b>给你一段能直接讲给同事听的白话：</b>程序打开目标页面点「查询」，弹出了验证码。第一步，监控器盯住验证码弹窗，把它需要的图（底图、缺口图、提示词）截下来存到本地；第二步，调起识别引擎——它是一个<b>独立的命令行小工具</b>，吃进去图片路径和题型，吐出来一行 JSON 答案（比如"滑块往右拖 153 像素"），这一步完全离线、不联网、不碰页面；第三步，拿到答案后程序在页面上<b>像人一样操作</b>：先"看题"停 1~3 秒，拖动轨迹带抖动和回弹，点选之间有停顿，松手前精确落回目标位置；第四步，<b>以服务端回执为准</b>核对这道题到底过没过——页面没刷新不代表失败，可能回执只是在监听窗口外才回来，有台账可以补捞；第五步，过了就继续采集业务数据，没过就<b>隔 60~75 秒换一道题再来</b>（新一轮才允许换题），最多 4 轮，还不行就重载页面跳过这一页继续翻页，绝不卡死整轮。整个过程的每一个动作都写成事件日志，出问题能对着日志逐帧复盘。</p>
+<p style="margin-top:10px"><b>三个最容易写错的坑</b>（都是我们真实踩过的，详见第 11 节）：</p>
+<p>① <b>验证码"通过"不等于业务请求已发出</b>——验证码遮罩会拦住页面点击，通过后必须确认查询载荷真的回来了，没回来要主动补发；</p>
+<p>② <b>页面没动静不等于提交失败</b>——回执可能来得慢，要留台账补捞，别急着换题白白浪费请求次数；</p>
+<p>③ <b>空结果（total=0）是合法结果</b>——别把"没有行"当成"没加载成功"死等超时。</p>
+</div>
+
+<!-- ============ 3 三层架构 ============ -->
+<h2 id="s3">3｜三层架构：谁负责什么，换站点改哪层</h2>
+<svg viewBox="0 0 680 300" width="100%" xmlns="http://www.w3.org/2000/svg" style="background:#ffffff;border:1px solid #e4e7ec;border-radius:12px;">
+  <!-- Layer 3 -->
+  <rect x="30" y="20" width="620" height="76" rx="10" fill="#eff4ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="50" y="46" font-size="14" font-weight="bold" fill="#1f2329">第 3 层 · 业务调用协议（persistent-collector.mjs）</text>
+  <text x="50" y="68" font-size="12" fill="#5b6472">决定"节奏"：什么时候弹码、一页提交几次、失败隔多久换题、几轮后跳页、页间隔与批冷却防限流</text>
+  <text x="50" y="86" font-size="12" fill="#2563eb" font-weight="bold">换站点必改 ★</text>
+  <!-- arrow -->
+  <line x1="340" y1="96" x2="340" y2="118" stroke="#9aa4b2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#9aa4b2"/></marker></defs>
+  <!-- Layer 2 -->
+  <rect x="30" y="120" width="620" height="86" rx="10" fill="#f4f0ff" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="50" y="146" font-size="14" font-weight="bold" fill="#1f2329">第 2 层 · 网页交互编排（captcha-auto.mjs，绑组件实现）</text>
+  <text x="50" y="168" font-size="12" fill="#5b6472">监听弹码 → 截图取题 → 调识别 → 坐标映射 → 人化操作（拖动轨迹/点选停顿）→ 提交 → 服务端回执核对</text>
+  <text x="50" y="190" font-size="12" fill="#6d28d9" font-weight="bold">换站点重写 ★★（绑定控件 DOM 与接口）</text>
+  <line x1="340" y1="206" x2="340" y2="228" stroke="#9aa4b2" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- Layer 1 -->
+  <rect x="30" y="230" width="620" height="56" rx="10" fill="#ecfaf8" stroke="#0f766e" stroke-width="1.5"/>
+  <text x="50" y="254" font-size="14" font-weight="bold" fill="#1f2329">第 1 层 · 识别原子（captcha-recognition 技能：run CLI）</text>
+  <text x="50" y="274" font-size="12" fill="#0f766e" font-weight="bold">纯离线命令行：图片进 → 一行 JSON 答案出。与网页完全解耦，换站点零改动 ★★★ 通用层</text>
+</svg>
+<table>
+  <tr><th style="width:130px">层</th><th>职责</th><th>输入 → 输出</th><th>换新站点时</th></tr>
+  <tr><td><b>第 1 层<br>识别原子</b><br><span class="term">captcha-recognition</span></td><td>给一张题图 + 题型，算出候选答案。不做任何网页操作，不知道"验证码"来自哪个网站</td><td>JSON（图片路径/题型/参考图）→ 一行 JSON（candidate / needs_human / error + 答案坐标或文本）</td><td><b>零改动</b>。新题型才需要加新算法</td></tr>
+  <tr><td><b>第 2 层<br>页面交互</b><br><span class="term">captcha-auto.mjs</span></td><td>把"答案"变成"页面上的真实操作"，并核对服务端是否认账。绑定具体验证码组件（山西绑的是天爱 tianai 组件）</td><td>页面弹码事件 → 题目截图、答案应用、回执判定</td><td><b>按组件重写</b>。经典图片码只要十几行（见云南）</td></tr>
+  <tr><td><b>第 3 层<br>调用协议</b><br><span class="term">persistent-collector</span></td><td>决定调用节奏：几轮、隔多久、失败怎么办、怎么防限流。这一层是"像不像人"的关键</td><td>业务翻页循环 → 每页的过码结果与事件日志</td><td><b>参数级调整</b>。逻辑直接复用</td></tr>
+</table>
+<div class="note note-green">✅ <b>复用的正确姿势</b>：第 1 层整包拿走；第 2 层按你站点的验证码组件重写（经典图片码只需"截图 → OCR → 填框 → 提交 → 校验"约 30 行）；第 3 层连逻辑带参数直接抄。</div>
+
+<!-- ============ 4 真实例子 ============ -->
+<h2 id="s4">4｜真实例子走一遍：2026-11-09 山西第 6 页（CONCAT 拼接题）</h2>
+<p>下面是 11-09 例行轮的真实时序（terminal.log 原文摘录），一道拼接题从弹出到过码全程 7.8 秒：</p>
+<div class="steps">
+  <div class="step"><b>翻页触发验证码</b><br><span class="why">第 3 层翻到第 6 页 → 页面弹出天爱验证码大卡片，第 2 层监听器捕获题目（type=CONCAT）</span></div>
+  <div class="step"><b>截图取题 → 调识别引擎</b><br><span class="why">底图存为 PNG，调用第 1 层 CLI（profile=shanxi-tac, type=concat），子进程 30 秒超时。引擎找出"竖直断缝 x=551、上下边界 y=175"，复原后色差下降 68.5 判定拼对了 → 返回 candidate（拖动 551−初始位 像素）</span></div>
+  <div class="step"><b>人化拖动</b><br><span class="why">先"看题"停 1.2~2.8 秒 → 按下前停 150~400ms → 拖动轨迹分多步、带随机纵向抖动 → 接近目标时先冲过头 3 像素再回弹 → 松手前精确落回目标 → 松手</span></div>
+  <div class="step"><b>等服务端回执（以它为准）</b><br><span class="why">监听 /captcha/check 响应：同一挑战 id + code 200 + success=true 才算"过"。页面还没刷新不算失败——回执台账留着，监听窗口外回来的"迟到回执"也能补捞（事件 captcha_auto_late_receipt）</span></div>
+  <div class="step"><b>等业务载荷，而不是急着重查</b><br><span class="why">过码后站点会自动补发被拦住的查询。程序只等载荷回来（total=274），<b>绝不主动重发查询</b>——多发一次就是多一次风控暴露</span></div>
+  <div class="step"><b>记录事件、继续翻页</b><br><span class="why">写一条 captcha_auto_solved（6.3s）到 captcha-events.jsonl，页间隔随机 5~9 秒后翻第 7 页</span></div>
+</div>
+<h3>云南的例子（第 1 层跨站点复用的实证）</h3>
+<p>云南站点是<b>经典"数字+字母"图片验证码</b>（不是天爱组件），整条链路只有约 30 行：截图 <code>img#captcha</code> → 调<b>同一个识别引擎</b>的 <code>generic</code> 档 → 把识别文本填进 <code>#captchaInput</code> → 点查询 → 检测查询是否真的生效。第 1 层零改动、第 2 层重写、第 3 层复用——这就是分层带来的复用收益。</p>
+
+<!-- ============ 5 四题型原理 ============ -->
+<h2 id="s5">5｜四类题型：输入什么、怎么算、怎么判</h2>
+<p>天爱组件（山西）的四种题型，识别引擎的算法一句话版：</p>
+<table>
+  <tr><th style="width:110px">题型</th><th>题目长什么样</th><th>需要输入</th><th>算法（人话版）</th><th>输出</th></tr>
+  <tr><td><span class="tag tag-blue">SLIDER</span></td><td>底图有个缺口，拖滑块把拼图块填进去</td><td>缺口图 + 同尺寸完整参考底图</td><td>两图做差分找缺口位置；没参考图时用边界环匹配等 3 套备用策略猜峰值</td><td>拖动像素距离</td></tr>
+  <tr><td><span class="tag tag-purple">ROTATE</span></td><td>圆盘内的照片转歪了，拖到转正</td><td>转歪图 + 正向参考（或圆环几何）</td><td>在圆环上找"内容与盘周照片衔接最连续"的角度，即边界连续性峰</td><td>顺时针角度 → 换算拖动距离</td></tr>
+  <tr><td><span class="tag tag-teal">CONCAT</span></td><td>大卡片：图片被横向切成两半且错位，拖到拼回去</td><td>原始大图（可选站点给的 randomY 行提示）</td><td>在图中找"竖直断缝"——上下两半在哪个 x 位置色差突变，拼回去后色差下降最多的就是答案</td><td>拖动像素距离</td></tr>
+  <tr><td><span class="tag tag-amber">WORD_IMAGE_CLICK</span></td><td>图里散布汉字，按提示语顺序点选</td><td>底图 + 提示词小图（保留透明通道）</td><td>OCR 读出每个字的候选位置（普通 OCR + 旋转 OCR + 字形匹配多路投票），按提示语顺序排好坐标</td><td>点选坐标列表</td></tr>
+</table>
+<table>
+  <tr><th style="width:110px">云南题型</th><th>题目</th><th>算法</th><th>输出</th></tr>
+  <tr><td><span class="tag tag-green">generic</span></td><td>数字+字母图片码（distort 文字）</td><td>ddddocr 直接出文本</td><td>文本（保留大小写、前导零）</td></tr>
+</table>
+<div class="note note-amber">⚠️ <b>引擎边界（哪些场景现在做不了）</b>：无参考图的任意旋转、自由布局的点字、语序推断类、未知组件——这些需要单独适配算法；点字题遇到低对比图可能给不出候选（needs_human），靠换题兜底，不硬解。</div>
+
+<!-- ============ 6 术语表 ============ -->
+<h2 id="s6">6｜术语 → 人话翻译表</h2>
+<table>
+  <tr><th style="width:200px">术语</th><th>人话</th></tr>
+  <tr><td><code>candidate</code></td><td>引擎给出了候选答案，但<b>还不算数</b>——要等服务端校验通过才算真的过</td></tr>
+  <tr><td><code>needs_human</code></td><td>引擎说"这道题我给不出靠谱答案"，交人工或换题。不是报错，是正常输出之一（退出码仍是 0）</td></tr>
+  <tr><td><code>error</code></td><td>输入或环境坏了（图片读不到、依赖缺），退出码 2，程序必须单独处理</td></tr>
+  <tr><td><span class="term">天爱组件 / tianai / TAC</span></td><td>山西政务站用的验证码前端组件（tianai-captcha），四种题型：滑块/旋转/拼接/点字</td></tr>
+  <tr><td><code>profile</code>（generic / shanxi-tac）</td><td>识别引擎的"档位"：generic 是通用图片码档；shanxi-tac 是按山西组件坐标和参考图特调的档</td></tr>
+  <tr><td><code>verifyCaptchaId</code></td><td>过码后站点发的"通行证 id"，随后的业务请求带着它，服务端才知道你过了码</td></tr>
+  <tr><td><b>回执</b></td><td>服务端对这道题的裁决（/captcha/check 返回 success=true）。<b>唯一可信的"过了"凭证</b>，页面没动不算失败、页面动了也不算成功</td></tr>
+  <tr><td><b>载荷</b></td><td>业务查询真正返回的数据（列表 total、rows）。过码后它回来 = 业务请求真的发出去了</td></tr>
+  <tr><td><b>风控 / 限流</b></td><td>站点发现"这不是人在操作"后的反制：弹"访问过于频繁"、429，甚至封。触发一次前功尽弃</td></tr>
+  <tr><td><b>爆破特征</b></td><td>短时间窗内连续申请验证码、连续提交——机器才有的行为模式。人不会 3 秒内换 5 道题</td></tr>
+  <tr><td><b>迟到回执</b></td><td>校验回执晚于程序的监听窗口才到达。程序留台账补捞，避免"实际过了却被记失败"</td></tr>
+  <tr><td><code>tuning.json</code></td><td>识别引擎的成绩账本：每个题型累计尝试/通过数，评估识别率用</td></tr>
+  <tr><td><code>captcha-events.jsonl</code></td><td>过码全过程的流水账（一行一个事件），排障就靠它逐帧复盘</td></tr>
+</table>
+
+<!-- ============ 7 模拟人工协议 ============ -->
+<h2 id="s7">7｜模拟人工调用协议：这套能力真正的护城河</h2>
+<div class="card">
+<h3 style="margin-top:0">先看对照实验（2026-11-06，同站点同 profile）</h3>
+<table>
+  <tr><th></th><th style="width:45%">旧版：机器式调用</th><th style="width:45%">新版：模拟人工</th></tr>
+  <tr><td>一页内行为</td><td>识别失败就点刷新换题 → 多策略重解 → 同题重提 → 重发查询。一页打十几次 check/gen 接口</td><td>只解当前这道题、只提交一次；没过就隔 60~75 秒换一道题开新一轮（最多 4 轮）</td></tr>
+  <tr><td>站点反应</td><td><b>第 3 页即触发"访问过于频繁"</b>，前功尽弃</td><td>对照轮 332 页 + 后续所有例行轮：<b>零限流</b></td></tr>
+  <tr><td>结论</td><td colspan="2">差异不在识别准确率，在<b>一页内的请求次数</b>。识别引擎 3 秒解出来也会因为调用方式像机器而被掐</td></tr>
+</table>
+</div>
+<h3>五条铁律（写死在代码里，改任何站点都适用）</h3>
+<div class="steps">
+  <div class="step"><b>一页 = 一道题 = 一次提交</b><br><span class="why">绝不主动点刷新换题、绝不多策略重解、绝不重发查询。人工就是这么干的</span></div>
+  <div class="step"><b>判定只认服务端回执</b><br><span class="why">页面刷新了不算数、拖完了没反应也不算失败——回执台账补捞迟到回执，无真实回执绝不宣称通过</span></div>
+  <div class="step"><b>没过就按人的节奏等，再开新一轮</b><br><span class="why">轮间隔 60~75 秒随机；新一轮才允许换一次题；单页上限 4 轮（CAPTCHA_AUTO_ROUNDS）</span></div>
+  <div class="step"><b>轮次用完 → 重载会话 → 跳页继续</b><br><span class="why">连续失败说明这道题/这个会话有毒，重载页面重建会话，标记该页 skippedPages 后继续翻页，<b>不中断整轮</b>；跳过的页由上层检查并决定是否定点补采</span></div>
+  <div class="step"><b>一出现限流信号立刻停手</b><br><span class="why">"频繁/稍后再试/429"一出现就不再提交（继续打只会加重风控），冷却 180 秒重试一次，仍限流才如实上报终止</span></div>
+</div>
+<div class="note note-blue">💡 <b>操作细节也在还原人</b>：看题停 1.2~2.8s、按下前停 150~400ms、拖动轨迹带随机抖动并先冲过头 3px 再回弹、点字每点之间停 90~180ms、松手前精确落回目标。这些"不像机器"的细节加起来，就是风控眼里的"像人"。</div>
+
+<!-- ============ 8 适配 Checklist ============ -->
+<h2 id="s8">8｜适配新站点 Checklist（照着做，8 步）</h2>
+<div class="card">
+<div class="steps" style="margin-top:4px">
+  <div class="step"><b>先判断验证码类型</b><br><span class="why">经典图片文字码（数字/字母/算术）→ 用 generic 档，几乎零适配；滑块/旋转/拼接/点字组件 → 看是不是天爱组件（是 → 直接用 shanxi-tac 档；不是 → 第 5 步要写新映射）</span></div>
+  <div class="step"><b>部署识别原子（第 1 层）</b><br><span class="why">拷贝 captcha-recognition 技能目录 → Python 3.12 建虚拟环境装依赖 → 跑一次 CLI 确认输出一行合法 JSON。点字题需要额外放两个模型文件（onnx + 字典，SHA256 见 contract.md）</span></div>
+  <div class="step"><b>离线验收，别直接上现网</b><br><span class="why">收集 30~100 道带答案的样本题，测整题正确率和"错误放行率"（把错的当对的提交，比识别不出更危险）。成绩记进 tuning.json 作为基线</span></div>
+  <div class="step"><b>写第 2 层：取题与提交</b><br><span class="why">监听验证码弹出 → 截下引擎需要的图（底图/参考图/提示词，透明通道要保留）→ 调 CLI → 把答案映射成页面操作。经典图码约 30 行；组件类要处理控件缩放（见第 11 节 CONCAT 教训）</span></div>
+  <div class="step"><b>写回执核对</b><br><span class="why">找到服务端校验接口（F12 看验证码提交打到哪个 URL），监听响应：挑战 id + 成功标志。留最近 20 条台账补捞迟到回执</span></div>
+  <div class="step"><b>过码后等业务载荷，确认"通过≠请求已发出"</b><br><span class="why">验证码遮罩可能拦住业务点击。过码后等查询载荷；载荷不来先查遮罩，确认被吞才补发（补发也算一次请求，能不发就不发）</span></div>
+  <div class="step"><b>接入第 3 层节奏 + 事件日志</b><br><span class="why">一页一次提交、4 轮上限、轮间 60~75s、跳页不断轮、限流即停。每个动作写 jsonl 事件（字段见附录 B），上线第一天就能对着日志排障</span></div>
+  <div class="step"><b>灰度验收 → 上例行</b><br><span class="why">先小窗口（单日/10 页）跑一轮人工盯梢，确认零限流、事件序列正常，再挂定时任务。例行轮每天看三个数：过码成功页数 / 换题轮次 / 限流次数</span></div>
+</div>
+</div>
+
+<!-- ============ 9 参数调优 ============ -->
+<h2 id="s9">9｜参数调优表 + 耗时估算器</h2>
+<p>所有参数都是环境变量，不改代码就能调。默认值是 2026-11-09 收紧后的版本：</p>
+<table>
+  <tr><th style="width:230px">参数</th><th>默认</th><th>含义</th><th>什么时候动它</th></tr>
+  <tr><td><code>PAGE_GAP_MS</code> + <code>_JITTER_MS</code></td><td>5000+4000<br>（页间隔 5~9s）</td><td>翻页之间的停顿</td><td>出现限流 → 先加回 8000+7000（人工节奏实测值）</td></tr>
+  <tr><td><code>BURST_PAGES</code></td><td>10</td><td>每做多少页冷却一次</td><td>限流 → 减小（8）；站点很宽容 → 加大</td></tr>
+  <tr><td><code>BURST_COOLDOWN_MS</code> + <code>_JITTER_MS</code></td><td>25000+15000<br>（冷却 25~40s）</td><td>每批之间的强制冷却</td><td><b>限流时第一个回退到 60000+30000</b>（11-06 实测值）</td></tr>
+  <tr><td><code>CAPTCHA_AUTO_ROUNDS</code></td><td>4</td><td>单页最多换题轮数</td><td>不建议加大——加大=更多请求=更高风控暴露</td></tr>
+  <tr><td><code>CAPTCHA_ROUND_GAP_MS</code> + <code>_JITTER_MS</code></td><td>60000+15000<br>（轮间 60~75s）</td><td>换题轮之间的等待</td><td>别低于 60s（爆破特征红线）；赶时间也别压这个</td></tr>
+  <tr><td><code>THROTTLE_COOLDOWN_MS</code></td><td>180000</td><td>触发限流后的恢复等待</td><td>保持默认。限流后立即重试=火上浇油</td></tr>
+  <tr><td><code>CAPTCHA_HUMAN_MODE</code></td><td>1</td><td>1=模拟人工；0=旧多轮重试</td><td><b>只在离线诊断时用 0</b>，现网永远 1</td></tr>
+  <tr><td><code>CAPTCHA_AUTO</code></td><td>1</td><td>0=完全关闭自动识别</td><td>引擎故障需人工兜底时临时关闭</td></tr>
+</table>
+<div class="note note-red">🔴 <b>回退口诀</b>：限流再现 → ① 批冷却回 60~90s → ② 页间隔回 8~15s → ③ 还不行说明站点升级了风控，回去看第 7 节是不是哪条铁律被"优化"掉了。</div>
+
+<h3>⏱️ 全轮耗时估算器（交互小工具）</h3>
+<div class="card">
+  <div class="calc">
+    <label>翻页总数 <input id="pgN" type="number" value="28" min="1" max="500"></label>
+    <button onclick="calc()">估算</button>
+  </div>
+  <div id="calcOut"></div>
+  <p class="term" style="margin-top:8px">估算模型：每页固定开销 ≈13s（弹码+识别+提交+载荷）+ 页间隔均值；每满一批页加一次冷却均值。与 11-09 实测（28 页 ≈15 分钟旧参数）吻合。</p>
+</div>
+
+<!-- ============ 10 两省对比 ============ -->
+<h2 id="s10">10｜两省适配对比：同一套能力搬两次花了多少工夫</h2>
+<table>
+  <tr><th style="width:130px"></th><th>山西（天爱组件）</th><th>云南（经典图码）</th></tr>
+  <tr><td>验证码类型</td><td>tianai 组件：滑块/旋转/拼接/点字四题型</td><td>数字+字母失真文字图</td></tr>
+  <tr><td>第 1 层改动</td><td>新增 shanxi-tac 档（四题型算法 + 300×180/242px 组件坐标 + 冻结参考底图库）</td><td><b>零改动</b>，generic 档直接用</td></tr>
+  <tr><td>第 2 层改动</td><td>captcha-auto.mjs 全量（监听/截图/缩放映射/人化拖动/回执台账，约 700 行）</td><td>约 30 行（截图 → OCR → 填框 → 提交 → 校验生效）</td></tr>
+  <tr><td>第 3 层改动</td><td>完整模拟人工协议</td><td>复用同一套节奏参数</td></tr>
+  <tr><td>现网状态</td><td>每日 09:50 例行，全自动零人工</td><td>每日 09:55 例行，全自动零人工</td></tr>
+</table>
+
+<!-- ============ 11 踩坑复盘 ============ -->
+<h2 id="s11">11｜踩坑复盘（4 个真实事故，比成功经验值钱）</h2>
+<details open><summary>事故 1｜CONCAT 永远 no_verdict：一个会等待的 DOM 查询拖垮了 12 秒回执窗口</summary><div class="body">
+<p><b>现象</b>：拼接题拖动明明成功了，程序却总记"无裁决"，再白等 90 秒换题——每道拼接题都浪费一次提交机会，还差点被当成"识别能力不行"。</p>
+<p><b>真凶</b>：取控件缩放比例的函数用了一个<b>会自动等待元素出现</b>的查询去找底图 <code>&lt;img&gt;</code>，但拼接题根本没有这个 <code>img</code>（底图是 DIV 的 CSS 背景）→ 静默等满 30 秒超时；而回执监听窗口只有 12 秒，在拖动开始前就过期了。拖动成功、回执也回来了，只是没人接。</p>
+<p><b>修复</b>：① 缩放读取改为一次性同步读 DOM，按 img → DIV 背景 → 整个组件三层候选依次取；② 回执加台账，超时后按挑战 id 补捞 1.5 秒内的迟到回执；③ 无真实回执绝不宣称通过（宁可信其未过）。</p>
+<p><b>教训</b>：验证码组件是前端 JS 动态渲染的，<b>每个题型在 DOM 里的结构可能完全不同</b>；任何"会等待"的查询放在时序敏感的路径上都是定时炸弹。</p>
+</div></details>
+<details><summary>事故 2｜验证码"通过"≠ 业务请求已发出：遮罩吞了点击</summary><div class="body">
+<p><b>现象</b>：过码后页面迟迟不刷新，程序误判"会话失效"反复重来。</p>
+<p><b>真凶</b>：验证码遮罩层会拦截页面 pointer 事件，如果"查询"按钮的点击落在遮罩之下，请求根本没发出去，过码后站点也不会自动补发。</p>
+<p><b>修复</b>：过码后先等业务载荷（8 秒），确认被吞才主动补发一次（补发也要计入请求次数预算）；同时把"空结果（total=0 且 rows=[]）"改成合法载荷，不再误判（事故 3 的另一半）。</p>
+</div></details>
+<details><summary>事故 3｜空结果被当成加载失败</summary><div class="body">
+<p><b>现象</b>：查询窗口内确实没有数据（节假日无批复），程序以"表格没出现行"判定加载失败，死等到超时。</p>
+<p><b>修复</b>：加载判定从"等行出现"改为"等载荷"——total=0 且 rows=[] 是合法结果，直接进入下一步。</p>
+</div></details>
+<details><summary>事故 4｜机器式调用触发限流：3 页 vs 332 页的对照实验</summary><div class="body">
+<p><b>现象</b>：自动识别 3 页就弹"访问过于频繁"；但人工填码连跑 332 页零风控。</p>
+<p><b>定位</b>：逐条比对两者的请求序列，发现差异全在<b>一页内的请求次数</b>——旧版识别失败会换题、多策略重解、同题重提、重发查询，一页打十几次接口，是教科书级的爆破特征。</p>
+<p><b>修复</b>：整章重写为第 7 节的模拟人工协议。修复后所有例行轮零限流。这是整套能力里<b>价值最大的一次重构</b>——它证明了调用方式比识别算法更早成为瓶颈。</p>
+</div></details>
+
+<!-- ============ 12 边界与合规 ============ -->
+<h2 id="s12">12｜边界与合规（先说清楚，免得用错方向）</h2>
+<div class="note note-red">
+<p>① <b>只解公开页面上的公开数据验证码</b>（政务公开列表、公示页）。登录态、付费墙、需个人身份的页面一律不适用。</p>
+<p>② <b>不绕过、不破解加密、不打接口漏洞</b>——我们做的是"把人过码的动作自动化并放慢到人的节奏"，本质是降低无意义的人力消耗，不是对抗风控。协议里所有"像人"的设计同时也在控制请求总量，对站点更友好。</p>
+<p>③ <b>needs_human 是能力的一部分</b>，不是失败：识别不出的题交人工或换题，绝不硬解；被限流立即停手，绝不重试轰炸。</p>
+<p>④ <b>数据仅用于已授权的内部数据需求登记流程</b>，采集范围、频率、字段都有登记可查。</p>
+</div>
+
+<!-- ============ 附录 A ============ -->
+<h2 id="a1">附录 A｜识别引擎 CLI 速查</h2>
+<pre><code id="c1"># 通用档：数字+字母图片码（云南在用）
+printf '%s\n' '{"type":"digits","image":"/abs/path/code.png","length":4}' | \
+  ~/.workbuddy/skills/captcha-recognition/run -
+# → {"status":"candidate","answer":{"text":"0148"},...}</code></pre>
+<pre><code id="c2"># 山西天爱档：滑块 / 旋转 / 拼接 / 点字
+printf '%s\n' '{"profile":"shanxi-tac","type":"slider","image":"/abs/bg.png","template":"/abs/piece.png"}' | \
+  ~/.workbuddy/skills/captcha-recognition/run -
+# → {"status":"candidate","answer":{"drag_px":153},...}
+
+# 约定：
+#  status = candidate   有候选，但必须等服务端回执才算过
+#  status = needs_human 引擎给不出答案 → 换题或交人工，不是错误
+#  status = error       输入/环境问题（退出码 2），程序必须单独处理
+#  site_verified 恒为 false —— 站点是否认账，只能由调用方核对回执</code></pre>
+<div style="text-align:right;font-size:12px;color:#9aa4b2">源码与调用契约：<code>captcha-recognition/references/contract.md</code></div>
+
+<!-- ============ 附录 B ============ -->
+<h2 id="a2">附录 B｜事件字典（captcha-events.jsonl）</h2>
+<table>
+  <tr><th style="width:230px">事件</th><th>含义</th><th>健康状态应该长什么样</th></tr>
+  <tr><td><code>captcha_prompt</code></td><td>弹出验证码（人工等待模式）</td><td>—</td></tr>
+  <tr><td><code>captcha_auto_solved</code></td><td>自动识别 + 提交 + 回执确认通过</td><td>每页 1 条，数量≈页数</td></tr>
+  <tr><td><code>captcha_auto_attempt</code></td><td>一次识别尝试（含 verdict：solved/needs_human/no_verdict…）</td><td>绝大多数页 1 次</td></tr>
+  <tr><td><code>captcha_auto_round_failed</code></td><td>本轮未过，进入轮间等待</td><td>偶发</td></tr>
+  <tr><td><code>captcha_auto_round_gap</code></td><td>换题轮间等待（60~75s）</td><td>偶发</td></tr>
+  <tr><td><code>captcha_page_exhausted</code></td><td>单页 4 轮用完</td><td>罕见；连续出现要查识别率</td></tr>
+  <tr><td><code>session_reset</code></td><td>重载页面重建会话（跳页前）</td><td>罕见</td></tr>
+  <tr><td><code>captcha_auto_late_receipt</code></td><td>迟到回执补捞成功（避免误判失败）</td><td>偶发，属于修复机制在起作用</td></tr>
+  <tr><td><code>captcha_auto_throttled</code></td><td><b>检测到限流</b></td><td><b>必须为 0</b>；非 0 立即停手并上报</td></tr>
+  <tr><td><code>captcha_auto_unavailable</code></td><td>识别引擎不可用（CLI 缺失/环境坏）</td><td>必须为 0</td></tr>
+  <tr><td><code>captcha_timeout</code></td><td>人工等待超时（全自动模式下不应出现）</td><td>必须为 0</td></tr>
+</table>
+<div class="note note-blue">💡 例行巡检三看：<b>captcha_auto_solved 数 ≈ 页数</b>（覆盖完整）、<b>captcha_auto_throttled = 0</b>（没被风控）、<b>captcha_timeout = 0</b>（没退化到人工等待）。checkpoint.json 里还有 <code>partial</code> 和 <code>skippedPages</code>——就算 status=completed，这两个字段非空就说明有页没覆盖。</div>
+
+<!-- ============ 附录 C ============ -->
+<h2 id="a3">附录 C｜文件与职责清单</h2>
+<table>
+  <tr><th style="width:280px">文件</th><th>层</th><th>职责</th></tr>
+  <tr><td><code>skills/captcha-recognition/</code><br>（run · recognize.py · shanxi_engine.py · assets/）</td><td>第 1 层</td><td>识别原子：CLI + 通用题型引擎 + 山西四题型特调引擎 + 冻结参考底图库 + tuning.json 成绩账本</td></tr>
+  <tr><td><code>collect-shanxi-pv-filings/scripts/captcha-auto.mjs</code></td><td>第 2 层</td><td>山西天爱组件的页面交互编排（监听/截图/缩放/人化操作/回执台账）</td></tr>
+  <tr><td><code>collect-shanxi-pv-filings/scripts/persistent-collector.mjs</code></td><td>第 3 层</td><td>模拟人工调用协议 + 防限流节奏 + 断点/跳页/事件日志</td></tr>
+  <tr><td><code>collect-yunnan-pv-filings/scripts/persistent-collector.mjs</code></td><td>第 2+3 层</td><td>云南经典图码的极简适配（第 1 层零改动复用的实证）</td></tr>
+  <tr><td><code>captcha-recognition/references/contract.md</code></td><td>文档</td><td>调用契约：输入输出格式、题型覆盖边界、跨机器安装、模型文件校验和</td></tr>
+</table>
+
+<div class="foot">
+验证码自动识别原子能力手册 · 2026-11-09 整理 · 数据与结论均来自现网真实运行日志，可溯源<br>
+山西验收：runs/2026-09-01_to_2026-09-30_*（验收与 dry-run 轮）｜ 11-09 例行：runs/2026-11-06_to_2026-11-08_202611090955
+</div>
+
+</div>
+<script>
+function calc(){
+  var n = parseInt(document.getElementById('pgN').value)||0;
+  if(n<1){document.getElementById('calcOut').innerHTML='请输入有效页数';return;}
+  function est(perPageFixed, gapAvg, burst, cdAvg){
+    var total = n*(perPageFixed+gapAvg) + Math.floor(n/burst)*cdAvg;
+    return Math.round(total/60*10)/10;
+  }
+  var oldV = est(13, 11.5, 8, 75);
+  var newV = est(13, 7, 10, 32.5);
+  var save = Math.round((oldV-newV)/oldV*100);
+  document.getElementById('calcOut').innerHTML =
+    '<table><tr><th></th><th>页间隔</th><th>批冷却</th><th>估算总耗时</th></tr>'+
+    '<tr><td>旧参数（11-06 版）</td><td>8~15s</td><td>每 8 页 60~90s</td><td><b>'+oldV+' 分钟</b></td></tr>'+
+    '<tr><td>新参数（11-09 收紧）</td><td>5~9s</td><td>每 10 页 25~40s</td><td><b style="color:#15803d">'+newV+' 分钟</b>（省 '+save+'%）</td></tr></table>'+
+    '<p class="term">页数少时（≤8 页）不会触发批冷却，两版差距很小；长跑差距才明显。</p>';
+}
+calc();
+// 代码块复制按钮
+document.querySelectorAll('pre').forEach(function(pre){
+  var btn=document.createElement('button');btn.className='copy';btn.textContent='复制';
+  btn.onclick=function(){navigator.clipboard.writeText(pre.querySelector('code').innerText);btn.textContent='已复制';setTimeout(function(){btn.textContent='复制';},1500);};
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>
