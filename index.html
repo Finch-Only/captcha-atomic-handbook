@@ -87,8 +87,8 @@
 <div class="wrap">
 
 <h1>验证码自动识别 · 原子能力手册</h1>
-<div class="subtitle">从「山西一次性脚本」提炼为「三层可复用原子能力」· 已在山西（天爱组件 4 题型）+ 云南（经典图码）两省现网验证</div>
-<div class="meta">整理日期 <b>2026-11-09</b> ｜ 维护 <b>万峰 / 小布</b> ｜ 数据依据 <b>2026-09-01 验收轮 + 11-06/11-09 现网轮真实日志</b>，所有数字都能在代码和事件日志里对上</div>
+<div class="subtitle">从「站点A一次性脚本」提炼为「三层可复用原子能力」· 已在站点A（天爱组件 4 题型）+ 站点B（经典图码）两省现网验证</div>
+<div class="meta">整理日期 <b>2026-11-09</b> ｜ 维护 <b>数据采集团队</b> ｜ 数据依据 <b>2026-09-01 验收轮 + 11-06/11-09 现网轮真实日志</b>，所有数字都能在代码和事件日志里对上</div>
 
 <!-- ============ 先看这一屏 ============ -->
 <div id="boot">
@@ -110,7 +110,7 @@
 <!-- ============ 1 结论先行 ============ -->
 <h2 id="s1">1｜结论先行：这套能力现在什么水平</h2>
 <div class="stats">
-  <div class="stat"><div class="num">100/103</div><div class="lbl">山西验收轮（100 页 103 题）</div></div>
+  <div class="stat"><div class="num">100/103</div><div class="lbl">站点A验收轮（100 页 103 题）</div></div>
   <div class="stat"><div class="num green">28/28</div><div class="lbl">11-09 例行轮：全自动过码页数</div></div>
   <div class="stat"><div class="num green">0</div><div class="lbl">11-09 例行轮：人工填码次数</div></div>
   <div class="stat"><div class="num">332 页</div><div class="lbl">人工节奏对照轮：零风控</div></div>
@@ -160,13 +160,13 @@
 <table>
   <tr><th style="width:130px">层</th><th>职责</th><th>输入 → 输出</th><th>换新站点时</th></tr>
   <tr><td><b>第 1 层<br>识别原子</b><br><span class="term">captcha-recognition</span></td><td>给一张题图 + 题型，算出候选答案。不做任何网页操作，不知道"验证码"来自哪个网站</td><td>JSON（图片路径/题型/参考图）→ 一行 JSON（candidate / needs_human / error + 答案坐标或文本）</td><td><b>零改动</b>。新题型才需要加新算法</td></tr>
-  <tr><td><b>第 2 层<br>页面交互</b><br><span class="term">captcha-auto.mjs</span></td><td>把"答案"变成"页面上的真实操作"，并核对服务端是否认账。绑定具体验证码组件（山西绑的是天爱 tianai 组件）</td><td>页面弹码事件 → 题目截图、答案应用、回执判定</td><td><b>按组件重写</b>。经典图片码只要十几行（见云南）</td></tr>
+  <tr><td><b>第 2 层<br>页面交互</b><br><span class="term">captcha-auto.mjs</span></td><td>把"答案"变成"页面上的真实操作"，并核对服务端是否认账。绑定具体验证码组件（站点A绑的是天爱 tianai 组件）</td><td>页面弹码事件 → 题目截图、答案应用、回执判定</td><td><b>按组件重写</b>。经典图片码只要十几行（见站点B）</td></tr>
   <tr><td><b>第 3 层<br>调用协议</b><br><span class="term">persistent-collector</span></td><td>决定调用节奏：几轮、隔多久、失败怎么办、怎么防限流。这一层是"像不像人"的关键</td><td>业务翻页循环 → 每页的过码结果与事件日志</td><td><b>参数级调整</b>。逻辑直接复用</td></tr>
 </table>
 <div class="note note-green">✅ <b>复用的正确姿势</b>：第 1 层整包拿走；第 2 层按你站点的验证码组件重写（经典图片码只需"截图 → OCR → 填框 → 提交 → 校验"约 30 行）；第 3 层连逻辑带参数直接抄。</div>
 
 <!-- ============ 4 真实例子 ============ -->
-<h2 id="s4">4｜真实例子走一遍：2026-11-09 山西第 6 页（CONCAT 拼接题）</h2>
+<h2 id="s4">4｜真实例子走一遍：2026-11-09 站点A第 6 页（CONCAT 拼接题）</h2>
 <p>下面是 11-09 例行轮的真实时序（terminal.log 原文摘录），一道拼接题从弹出到过码全程 7.8 秒：</p>
 <div class="steps">
   <div class="step"><b>翻页触发验证码</b><br><span class="why">第 3 层翻到第 6 页 → 页面弹出天爱验证码大卡片，第 2 层监听器捕获题目（type=CONCAT）</span></div>
@@ -176,12 +176,12 @@
   <div class="step"><b>等业务载荷，而不是急着重查</b><br><span class="why">过码后站点会自动补发被拦住的查询。程序只等载荷回来（total=274），<b>绝不主动重发查询</b>——多发一次就是多一次风控暴露</span></div>
   <div class="step"><b>记录事件、继续翻页</b><br><span class="why">写一条 captcha_auto_solved（6.3s）到 captcha-events.jsonl，页间隔随机 5~9 秒后翻第 7 页</span></div>
 </div>
-<h3>云南的例子（第 1 层跨站点复用的实证）</h3>
-<p>云南站点是<b>经典"数字+字母"图片验证码</b>（不是天爱组件），整条链路只有约 30 行：截图 <code>img#captcha</code> → 调<b>同一个识别引擎</b>的 <code>generic</code> 档 → 把识别文本填进 <code>#captchaInput</code> → 点查询 → 检测查询是否真的生效。第 1 层零改动、第 2 层重写、第 3 层复用——这就是分层带来的复用收益。</p>
+<h3>站点B的例子（第 1 层跨站点复用的实证）</h3>
+<p>站点B站点是<b>经典"数字+字母"图片验证码</b>（不是天爱组件），整条链路只有约 30 行：截图 <code>img#captcha</code> → 调<b>同一个识别引擎</b>的 <code>generic</code> 档 → 把识别文本填进 <code>#captchaInput</code> → 点查询 → 检测查询是否真的生效。第 1 层零改动、第 2 层重写、第 3 层复用——这就是分层带来的复用收益。</p>
 
 <!-- ============ 5 四题型原理 ============ -->
 <h2 id="s5">5｜四类题型：输入什么、怎么算、怎么判</h2>
-<p>天爱组件（山西）的四种题型，识别引擎的算法一句话版：</p>
+<p>天爱组件（站点A）的四种题型，识别引擎的算法一句话版：</p>
 <table>
   <tr><th style="width:110px">题型</th><th>题目长什么样</th><th>需要输入</th><th>算法（人话版）</th><th>输出</th></tr>
   <tr><td><span class="tag tag-blue">SLIDER</span></td><td>底图有个缺口，拖滑块把拼图块填进去</td><td>缺口图 + 同尺寸完整参考底图</td><td>两图做差分找缺口位置；没参考图时用边界环匹配等 3 套备用策略猜峰值</td><td>拖动像素距离</td></tr>
@@ -190,7 +190,7 @@
   <tr><td><span class="tag tag-amber">WORD_IMAGE_CLICK</span></td><td>图里散布汉字，按提示语顺序点选</td><td>底图 + 提示词小图（保留透明通道）</td><td>OCR 读出每个字的候选位置（普通 OCR + 旋转 OCR + 字形匹配多路投票），按提示语顺序排好坐标</td><td>点选坐标列表</td></tr>
 </table>
 <table>
-  <tr><th style="width:110px">云南题型</th><th>题目</th><th>算法</th><th>输出</th></tr>
+  <tr><th style="width:110px">站点B题型</th><th>题目</th><th>算法</th><th>输出</th></tr>
   <tr><td><span class="tag tag-green">generic</span></td><td>数字+字母图片码（distort 文字）</td><td>ddddocr 直接出文本</td><td>文本（保留大小写、前导零）</td></tr>
 </table>
 <div class="note note-amber">⚠️ <b>引擎边界（哪些场景现在做不了）</b>：无参考图的任意旋转、自由布局的点字、语序推断类、未知组件——这些需要单独适配算法；点字题遇到低对比图可能给不出候选（needs_human），靠换题兜底，不硬解。</div>
@@ -202,8 +202,8 @@
   <tr><td><code>candidate</code></td><td>引擎给出了候选答案，但<b>还不算数</b>——要等服务端校验通过才算真的过</td></tr>
   <tr><td><code>needs_human</code></td><td>引擎说"这道题我给不出靠谱答案"，交人工或换题。不是报错，是正常输出之一（退出码仍是 0）</td></tr>
   <tr><td><code>error</code></td><td>输入或环境坏了（图片读不到、依赖缺），退出码 2，程序必须单独处理</td></tr>
-  <tr><td><span class="term">天爱组件 / tianai / TAC</span></td><td>山西政务站用的验证码前端组件（tianai-captcha），四种题型：滑块/旋转/拼接/点字</td></tr>
-  <tr><td><code>profile</code>（generic / shanxi-tac）</td><td>识别引擎的"档位"：generic 是通用图片码档；shanxi-tac 是按山西组件坐标和参考图特调的档</td></tr>
+  <tr><td><span class="term">天爱组件 / tianai / TAC</span></td><td>站点A政务站用的验证码前端组件（tianai-captcha），四种题型：滑块/旋转/拼接/点字</td></tr>
+  <tr><td><code>profile</code>（generic / shanxi-tac）</td><td>识别引擎的"档位"：generic 是通用图片码档；shanxi-tac 是按站点A组件坐标和参考图特调的档</td></tr>
   <tr><td><code>verifyCaptchaId</code></td><td>过码后站点发的"通行证 id"，随后的业务请求带着它，服务端才知道你过了码</td></tr>
   <tr><td><b>回执</b></td><td>服务端对这道题的裁决（/captcha/check 返回 success=true）。<b>唯一可信的"过了"凭证</b>，页面没动不算失败、页面动了也不算成功</td></tr>
   <tr><td><b>载荷</b></td><td>业务查询真正返回的数据（列表 total、rows）。过码后它回来 = 业务请求真的发出去了</td></tr>
@@ -279,7 +279,7 @@
 <!-- ============ 10 两省对比 ============ -->
 <h2 id="s10">10｜两省适配对比：同一套能力搬两次花了多少工夫</h2>
 <table>
-  <tr><th style="width:130px"></th><th>山西（天爱组件）</th><th>云南（经典图码）</th></tr>
+  <tr><th style="width:130px"></th><th>站点A（天爱组件）</th><th>站点B（经典图码）</th></tr>
   <tr><td>验证码类型</td><td>tianai 组件：滑块/旋转/拼接/点字四题型</td><td>数字+字母失真文字图</td></tr>
   <tr><td>第 1 层改动</td><td>新增 shanxi-tac 档（四题型算法 + 300×180/242px 组件坐标 + 冻结参考底图库）</td><td><b>零改动</b>，generic 档直接用</td></tr>
   <tr><td>第 2 层改动</td><td>captcha-auto.mjs 全量（监听/截图/缩放映射/人化拖动/回执台账，约 700 行）</td><td>约 30 行（截图 → OCR → 填框 → 提交 → 校验生效）</td></tr>
@@ -321,13 +321,13 @@
 
 <!-- ============ 附录 A ============ -->
 <h2 id="a1">附录 A｜识别引擎 CLI 速查</h2>
-<pre><code id="c1"># 通用档：数字+字母图片码（云南在用）
+<pre><code id="c1"># 通用档：数字+字母图片码（站点B在用）
 printf '%s\n' '{"type":"digits","image":"/abs/path/code.png","length":4}' | \
-  ~/.workbuddy/skills/captcha-recognition/run -
+  ~/skills/captcha-recognition/run -
 # → {"status":"candidate","answer":{"text":"0148"},...}</code></pre>
-<pre><code id="c2"># 山西天爱档：滑块 / 旋转 / 拼接 / 点字
+<pre><code id="c2"># 站点A天爱档：滑块 / 旋转 / 拼接 / 点字
 printf '%s\n' '{"profile":"shanxi-tac","type":"slider","image":"/abs/bg.png","template":"/abs/piece.png"}' | \
-  ~/.workbuddy/skills/captcha-recognition/run -
+  ~/skills/captcha-recognition/run -
 # → {"status":"candidate","answer":{"drag_px":153},...}
 
 # 约定：
@@ -359,16 +359,16 @@ printf '%s\n' '{"profile":"shanxi-tac","type":"slider","image":"/abs/bg.png","te
 <h2 id="a3">附录 C｜文件与职责清单</h2>
 <table>
   <tr><th style="width:280px">文件</th><th>层</th><th>职责</th></tr>
-  <tr><td><code>skills/captcha-recognition/</code><br>（run · recognize.py · shanxi_engine.py · assets/）</td><td>第 1 层</td><td>识别原子：CLI + 通用题型引擎 + 山西四题型特调引擎 + 冻结参考底图库 + tuning.json 成绩账本</td></tr>
-  <tr><td><code>collect-shanxi-pv-filings/scripts/captcha-auto.mjs</code></td><td>第 2 层</td><td>山西天爱组件的页面交互编排（监听/截图/缩放/人化操作/回执台账）</td></tr>
+  <tr><td><code>skills/captcha-recognition/</code><br>（run · recognize.py · shanxi_engine.py · assets/）</td><td>第 1 层</td><td>识别原子：CLI + 通用题型引擎 + 站点A四题型特调引擎 + 冻结参考底图库 + tuning.json 成绩账本</td></tr>
+  <tr><td><code>collect-shanxi-pv-filings/scripts/captcha-auto.mjs</code></td><td>第 2 层</td><td>站点A天爱组件的页面交互编排（监听/截图/缩放/人化操作/回执台账）</td></tr>
   <tr><td><code>collect-shanxi-pv-filings/scripts/persistent-collector.mjs</code></td><td>第 3 层</td><td>模拟人工调用协议 + 防限流节奏 + 断点/跳页/事件日志</td></tr>
-  <tr><td><code>collect-yunnan-pv-filings/scripts/persistent-collector.mjs</code></td><td>第 2+3 层</td><td>云南经典图码的极简适配（第 1 层零改动复用的实证）</td></tr>
+  <tr><td><code>collect-yunnan-pv-filings/scripts/persistent-collector.mjs</code></td><td>第 2+3 层</td><td>站点B经典图码的极简适配（第 1 层零改动复用的实证）</td></tr>
   <tr><td><code>captcha-recognition/references/contract.md</code></td><td>文档</td><td>调用契约：输入输出格式、题型覆盖边界、跨机器安装、模型文件校验和</td></tr>
 </table>
 
 <div class="foot">
 验证码自动识别原子能力手册 · 2026-11-09 整理 · 数据与结论均来自现网真实运行日志，可溯源<br>
-山西验收：runs/2026-09-01_to_2026-09-30_*（验收与 dry-run 轮）｜ 11-09 例行：runs/2026-11-06_to_2026-11-08_202611090955
+站点A验收：runs/2026-09-01_to_2026-09-30_*（验收与 dry-run 轮）｜ 11-09 例行：runs/2026-11-06_to_2026-11-08_202611090955
 </div>
 
 </div>
