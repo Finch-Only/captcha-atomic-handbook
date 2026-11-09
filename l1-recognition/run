@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ ! -x "$here/.venv/bin/python" ]; then
+  printf '%s\n' '{"schema_version":1,"status":"error","site_verified":false,"answer":null,"reason":"missing virtual environment; see references/contract.md"}'
+  exit 2
+fi
+exec "$here/.venv/bin/python" "$here/scripts/recognize.py" "$@"

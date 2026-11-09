@@ -1,0 +1,37 @@
+{
+  "updatedAt": "2026-11-09T02:13:29.841Z",
+  "profiles": {
+    "SLIDER": {
+      "default": {
+        "attempts": 48,
+        "pass": 45
+      },
+      "default+adapt": {
+        "attempts": 1,
+        "pass": 1
+      }
+    },
+    "WORD_IMAGE_CLICK": {
+      "default": {
+        "attempts": 37,
+        "pass": 28
+      },
+      "default+adapt": {
+        "attempts": 3,
+        "pass": 3
+      }
+    },
+    "CONCAT": {
+      "default": {
+        "attempts": 25,
+        "pass": 14
+      }
+    },
+    "ROTATE": {
+      "default": {
+        "attempts": 48,
+        "pass": 47
+      }
+    }
+  }
+}
